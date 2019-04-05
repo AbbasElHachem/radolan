@@ -10,6 +10,7 @@ Plot the results (longitude, Latitude, Rainfall (mm/h))
 '''
 
 __author__ = "Abbas El Hachem"
+__copyright__ = 'Institut fuer Wasser- und Umweltsystemmodellierung - IWS'
 __email__ = "abbas.el-hachem@iws.uni-stuttgart.de"
 
 # =============================================================================
@@ -36,11 +37,11 @@ assert os.path.exists(fpath), 'wrong radolan file location'
 # =============================================================================
 # Bounding Box REUTLINGEN
 # =============================================================================
-xMin, yMin = 9.02108, 48.3714
-xMax, yMax = 9.39639, 48.614
 shp_reutlingen = r'x:\exchange\seidel\tracks\RT_bbox.shp'
 assert os.path.exists(shp_reutlingen), 'wrong shapefile location'
 
+xMin, yMin = 9.02108, 48.3714
+xMax, yMax = 9.39639, 48.614
 
 #==============================================================================
 # Transform Radolan Coords to WGS84 or Gauss Krieger 3
@@ -175,6 +176,7 @@ if __name__ == '__main__':
     print('Program started at: ', start)
 
     lons, lats = tranform_radolan_coords('wgs84')
+
     (final_lons_idx, final_lats_idx,
      wanted_lons, wanted_lats) = extract_wanted_data(xMin, yMin,
                                                      xMax, yMax,
@@ -187,6 +189,7 @@ if __name__ == '__main__':
                                 wanted_lats,
                                 wanted_ppt_data,
                                 shp_reutlingen)
+
     end = time.asctime()
     end_time = timeit.default_timer()
     print('Program ended at: ', end,
