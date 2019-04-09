@@ -31,7 +31,8 @@ import matplotlib.pyplot as plt
 # Radolan file
 #==============================================================================
 fpath = (r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan'
-         r'\raa01-rw_10000-1904021450-dwd---bin.gz')
+         r'\raw_data_12012019_14012019_'
+         r'\raa01-rw_10000-1901132350-dwd---bin.gz')
 assert os.path.exists(fpath), 'wrong radolan file location'
 
 # =============================================================================
@@ -127,11 +128,11 @@ def read_radolanRW(radolan_fpath,
     maskeddata = np.ma.masked_equal(data, metadata["nodataflag"])
     print('Shape of radolan data is: ', data.shape)
     print('Metadata in Radolan file is: ', metadata.keys())
-
+    print('Time of Radolan file is: ', metadata['datetime'])
     # extract corresponding Radolan data
     wanted_ppt_data = maskeddata[wanted_coords_lon_idx, wanted_coords_lats_idx]
     print('Done getting wanted Radolan data section')
-    return wanted_ppt_data
+    return wanted_ppt_data, metadata['datetime']
 
 
 #==============================================================================
@@ -141,6 +142,7 @@ def read_radolanRW(radolan_fpath,
 def plot_ppt_Radolan_in_shpfile(extracted_lons,
                                 extracted_lats,
                                 extracted_ppt_data,
+                                time_of_pic,
                                 shapefile_path):
     print('Plotting extracted Radolan data and coordinates')
     fig = plt.figure(figsize=(10, 8))
@@ -160,8 +162,8 @@ def plot_ppt_Radolan_in_shpfile(extracted_lons,
 
     pm = ax.scatter(extracted_lons, extracted_lats,
                     c=extracted_ppt_data, marker='o',
-                    s=100, cmap=plt.get_cmap('viridis'))
-
+                    s=120, cmap=plt.get_cmap('viridis_r'))
+    plt.title(time_of_pic)
     cb = fig.colorbar(pm, shrink=0.85)
     cb.set_label('Ppt (mm/h)')
     ax.set_xlabel("Longitude")
@@ -181,13 +183,14 @@ if __name__ == '__main__':
      wanted_lons, wanted_lats) = extract_wanted_data(xMin, yMin,
                                                      xMax, yMax,
                                                      lons, lats)
-    wanted_ppt_data = read_radolanRW(fpath,
-                                     final_lons_idx,
-                                     final_lats_idx)
+    wanted_ppt_data, time_of_pic = read_radolanRW(fpath,
+                                                  final_lons_idx,
+                                                  final_lats_idx)
 
     plot_ppt_Radolan_in_shpfile(wanted_lons,
                                 wanted_lats,
                                 wanted_ppt_data,
+                                time_of_pic,
                                 shp_reutlingen)
 
     end = time.asctime()
