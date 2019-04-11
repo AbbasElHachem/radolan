@@ -11,7 +11,7 @@ __email__ = "abbas.el-hachem@iws.uni-stuttgart.de"
 
 # ===================================================
 
-from pathlib import Path
+
 from datetime import timedelta
 
 import _01_intersect_radar_reutlingen as radolan_reutl
@@ -26,6 +26,8 @@ import shapefile
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
+from adjustText import adjust_text
 
 plt.style.use('fast')
 plt.rcParams.update({'font.size': 16})
@@ -44,12 +46,22 @@ stn_locations = (r'X:\hiwi\ElHachem\Jochen'
                  r'\Reutlingen_Radolan'
                  r'\tobi_metadata_ser_copy_abbas.csv')
 
+# path_to_radolan_data_dir = (r'X:\hiwi\ElHachem\Jochen'
+#                             r'\Reutlingen_Radolan'
+#                             r'\raw_data_1_event_12012019_14012019_')
+
 path_to_radolan_data_dir = (r'X:\hiwi\ElHachem\Jochen'
                             r'\Reutlingen_Radolan'
-                            r'\raw_data_12012019_14012019_')
+                            r'\raw_data_2_event_23122018_14122018_')
 
 shp_reutlingen = r'x:\exchange\seidel\tracks\RT_bbox.shp'
 assert os.path.exists(shp_reutlingen), 'wrong shapefile location'
+
+out_save_dir = (r'X:\hiwi\ElHachem\Jochen'
+                r'\Reutlingen_Radolan'
+                r'\results_plots')
+if not os.path.exists(out_save_dir):
+    os.mkdir(out_save_dir)
 
 # counding box Reutlingen
 xMin, yMin = 9.02108, 48.3714
@@ -141,14 +153,16 @@ def get_radolan_data(path_to_radolan_data, final_lons_idx, final_lats_idx):
 
 def plot_radolan_ppt_data(wanted_lons, wanted_lats,
                           wanted_ppt_data, time_of_pic,
-                          df_ppt_same_time, stn_df):
+                          df_ppt_same_time, stn_df,
+                          out_dir):
     fig, (ax0, ax1) = plt.subplots(2, 1,
-                                   figsize=(12, 8),
-                                   dpi=50)
+                                   figsize=(20, 12),
+                                   dpi=100)
 
-    stn_colrs = ['r', 'b', 'g', 'violet', 'c', 'darkgreen',
-                 'maroon', 'm', 'k', 'orange', 'pink', 'navy']
+    stn_colrs = ['r', 'b', 'g', 'k', 'c', 'darkgreen',
+                 'maroon', 'm', 'k', 'orange', 'brown', 'navy']
 
+    markers = ['o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd', '*']
     sf = shapefile.Reader(shp_reutlingen)
 
     for shape_ in sf.shapeRecords():
@@ -161,40 +175,58 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
 
     pm = ax0.scatter(wanted_lons, wanted_lats,
                      c=wanted_ppt_data, marker='o',
-                     s=90, cmap=plt.get_cmap('viridis_r'))
+                     s=80, cmap=plt.get_cmap('viridis_r'))
 
-    ax0.scatter(stn_df.lon.values, stn_df.lat.values, c=stn_colrs,
-                marker='+', s=120,
-                label='Ppt stations')
+    for i in range(len(markers)):
+        ax0.scatter(stn_df.lon.values[i], stn_df.lat.values[i],
+                    c=stn_colrs[i],
+                    marker=markers[i], s=100,
+                    label='Ppt stations')
+
+        ax1.scatter(df_ppt_same_time.index[i], df_ppt_same_time.values[i],
+                    c=stn_colrs[i],
+                    marker=markers[i], s=100,
+                    label='Station %s' % df_ppt_same_time.index[i])
+
+    ax1.plot(df_ppt_same_time.index,
+             df_ppt_same_time.values,
+             c='grey', alpha=0.5)
+
+    texts = []
+    for i, txt in enumerate(df_ppt_same_time.index.values):
+        texts.append(ax0.text(stn_df.lon.values[i],
+                              stn_df.lat.values[i],
+                              txt))
+    adjust_text(texts, ax=ax0)
+
+    texts = []
+    for i, txt in enumerate(df_ppt_same_time.index.values):
+        texts.append(ax1.text(df_ppt_same_time.index[i],
+                              df_ppt_same_time.values[i],
+                              txt))
+    adjust_text(texts, ax=ax1)
 
     ax0.set_title('Radolan data for %s' % str(time_of_pic))
 
     cb = fig.colorbar(pm, shrink=0.85, ax=ax0)
     cb.set_label('Ppt (mm/h)')
+
     ax0.set_xlabel("Longitude")
     ax0.set_ylabel("Latitude")
 
-    ax1.plot(df_ppt_same_time.index,
-             df_ppt_same_time.values,
-             c='grey', alpha=0.75)
-
-    ax1.scatter(df_ppt_same_time.index, df_ppt_same_time.values,
-                c=stn_colrs,
-                marker='+', s=120,
-                label='Ppt stations')
-
-#     ax1.set_xlim([df_ppt_same_time.index.values.min(),
-#                   df_ppt_same_time.index.values.max()])
-
+    ax1.set_title('Station data for %s' % str(time_of_pic))
     ax1.set_xticks([i for i in df_ppt_same_time.index.values])
+    ax1.set_ylabel("Ppt (mm/h)")
 
-    ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+    ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.07),
                fancybox=True, shadow=True, ncol=5)
-
+    time_for_save = str(time_of_pic).replace(':', '_').replace(' ', '_')
     plt.tight_layout()
-    plt.show()
+    plt.savefig(os.path.join(out_dir, 'data_for_%s_.png' % time_for_save),
+                frameon=True, papertype='a4',
+                bbox_inches='tight', pad_inches=.2)
 
-    pass
+    return
 
 
 if __name__ == '__main__':
@@ -221,7 +253,7 @@ if __name__ == '__main__':
         assert time_of_pic in df_hourly.index
         ppt_data = df_hourly.loc[time_of_pic, :]
         plot_radolan_ppt_data(wanted_lons, wanted_lats, wanted_ppt_data,
-                              time_of_pic, ppt_data, stn_df)
+                              time_of_pic, ppt_data, stn_df, out_save_dir)
 #         break
 
     STOP = timeit.default_timer()  # Ending time

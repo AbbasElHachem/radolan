@@ -27,11 +27,13 @@ import wradlib as wrl
 import matplotlib.pyplot as plt
 
 
+test_ftn = False
+
 #==============================================================================
 # Radolan file
 #==============================================================================
 fpath = (r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan'
-         r'\raw_data_12012019_14012019_'
+         r'\raw_data_1_event_12012019_14012019_'
          r'\raa01-rw_10000-1901132350-dwd---bin.gz')
 assert os.path.exists(fpath), 'wrong radolan file location'
 
@@ -177,21 +179,22 @@ if __name__ == '__main__':
     start_time = timeit.default_timer()
     print('Program started at: ', start)
 
-    lons, lats = tranform_radolan_coords('wgs84')
+    if test_ftn:
+        lons, lats = tranform_radolan_coords('wgs84')
 
-    (final_lons_idx, final_lats_idx,
-     wanted_lons, wanted_lats) = extract_wanted_data(xMin, yMin,
-                                                     xMax, yMax,
-                                                     lons, lats)
-    wanted_ppt_data, time_of_pic = read_radolanRW(fpath,
-                                                  final_lons_idx,
-                                                  final_lats_idx)
+        (final_lons_idx, final_lats_idx,
+         wanted_lons, wanted_lats) = extract_wanted_data(xMin, yMin,
+                                                         xMax, yMax,
+                                                         lons, lats)
+        wanted_ppt_data, time_of_pic = read_radolanRW(fpath,
+                                                      final_lons_idx,
+                                                      final_lats_idx)
 
-    plot_ppt_Radolan_in_shpfile(wanted_lons,
-                                wanted_lats,
-                                wanted_ppt_data,
-                                time_of_pic,
-                                shp_reutlingen)
+        plot_ppt_Radolan_in_shpfile(wanted_lons,
+                                    wanted_lats,
+                                    wanted_ppt_data,
+                                    time_of_pic,
+                                    shp_reutlingen)
 
     end = time.asctime()
     end_time = timeit.default_timer()
