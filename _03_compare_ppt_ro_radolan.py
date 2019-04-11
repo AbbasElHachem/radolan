@@ -1,19 +1,8 @@
 # !/usr/bin/env python.
 # -*- coding: utf-8 -*-
 
-"""Gets and prints the spreadsheet's header columns
-
-Parameters
-----------
-file_loc : str
-    The file location of the spreadsheet
-print_cols : bool, optional
-    A flag used to print the columns to the console (default is False)
-
-Returns
--------
-list
-    a list of strings representing the header columns
+"""
+For HOCHWASSER events, fing how was the Radolan data and PPT station data
 """
 
 __author__ = "Abbas El Hachem"
@@ -33,20 +22,27 @@ import time
 
 import fnmatch
 import shapefile
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-main_dir = Path(os.getcwd())
-os.chdir(main_dir)
+plt.style.use('fast')
+plt.rcParams.update({'font.size': 16})
+plt.rcParams.update({'axes.labelsize': 14})
+
 
 #==============================================================================
 # Data and directories
 #==============================================================================
-path_to_ppt_df = 'final_df_Reutlingen_.csv'
+path_to_ppt_df = (r'X:\hiwi\ElHachem\Jochen'
+                  r'\Reutlingen_Radolan'
+                  r'\final_df_Reutlingen_.csv')
+
+
 stn_locations = (r'X:\hiwi\ElHachem\Jochen'
-                 r'\Reutlingen_Radolan\RT_Pluviodaten'
-                 r'\tobi_metadata_ser.csv')
+                 r'\Reutlingen_Radolan'
+                 r'\tobi_metadata_ser_copy_abbas.csv')
 
 path_to_radolan_data_dir = (r'X:\hiwi\ElHachem\Jochen'
                             r'\Reutlingen_Radolan'
@@ -55,9 +51,11 @@ path_to_radolan_data_dir = (r'X:\hiwi\ElHachem\Jochen'
 shp_reutlingen = r'x:\exchange\seidel\tracks\RT_bbox.shp'
 assert os.path.exists(shp_reutlingen), 'wrong shapefile location'
 
+# counding box Reutlingen
 xMin, yMin = 9.02108, 48.3714
 xMax, yMax = 9.39639, 48.614
 
+# use this for shifting Ppt data to match Radolan data
 labelshift_minutes = timedelta(minutes=50)
 #==============================================================================
 #
@@ -144,7 +142,12 @@ def get_radolan_data(path_to_radolan_data, final_lons_idx, final_lats_idx):
 def plot_radolan_ppt_data(wanted_lons, wanted_lats,
                           wanted_ppt_data, time_of_pic,
                           df_ppt_same_time, stn_df):
-    fig, (ax0, ax1, ax2) = plt.subplots(3, 1)  # , sharex=True)
+    fig, (ax0, ax1) = plt.subplots(2, 1,
+                                   figsize=(12, 8),
+                                   dpi=50)
+
+    stn_colrs = ['r', 'b', 'g', 'violet', 'c', 'darkgreen',
+                 'maroon', 'm', 'k', 'orange', 'pink', 'navy']
 
     sf = shapefile.Reader(shp_reutlingen)
 
@@ -158,33 +161,37 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
 
     pm = ax0.scatter(wanted_lons, wanted_lats,
                      c=wanted_ppt_data, marker='o',
-                     s=100, cmap=plt.get_cmap('viridis_r'))
+                     s=90, cmap=plt.get_cmap('viridis_r'))
+
+    ax0.scatter(stn_df.lon.values, stn_df.lat.values, c=stn_colrs,
+                marker='+', s=120,
+                label='Ppt stations')
+
     ax0.set_title('Radolan data for %s' % str(time_of_pic))
 
     cb = fig.colorbar(pm, shrink=0.85, ax=ax0)
     cb.set_label('Ppt (mm/h)')
     ax0.set_xlabel("Longitude")
     ax0.set_ylabel("Latitude")
-#     ax1.scatter(stn_df.lon.values, stn_df.lat.values, c='r')
-#     ax1.set_xlim([stn_df.lon.values.min(), stn_df.lon.values.max()])
-#     ax1.set_ylim([stn_df.lat.values.min(), stn_df.lat.values.max()])
-#     ax0.set_xticks(wanted_lons[::200])
-#     ax0.set_yticks(wanted_lats[::200])
-    colrs = ['r', 'b', 'g', 'y', 'c', 'darkgreen',
-             'maroon', 'm', 'k', 'orange', 'pink', 'navy']
-    markers = ['.', ',', 'o', 'v', '^', '1',
-               '3', '*', 'p', 'x', '_', 'd']
-    ax1.plot(df_ppt_same_time.index,
-             df_ppt_same_time.values, c='grey', alpha=0.75)
 
-    ax1.scatter(df_ppt_same_time.index, df_ppt_same_time.values, c=colrs)
-#              marker=markers)
-    ax1.set_xlim([df_ppt_same_time.index.values.min(),
-                  df_ppt_same_time.index.values.max()])
+    ax1.plot(df_ppt_same_time.index,
+             df_ppt_same_time.values,
+             c='grey', alpha=0.75)
+
+    ax1.scatter(df_ppt_same_time.index, df_ppt_same_time.values,
+                c=stn_colrs,
+                marker='+', s=120,
+                label='Ppt stations')
+
+#     ax1.set_xlim([df_ppt_same_time.index.values.min(),
+#                   df_ppt_same_time.index.values.max()])
+
     ax1.set_xticks([i for i in df_ppt_same_time.index.values])
-#     ax1.set_ylim([stn_df.lat.values.min(), stn_df.lat.values.max()])
-    # marker=markers, alpha=0.75)
-    fig.tight_layout()
+
+    ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+               fancybox=True, shadow=True, ncol=5)
+
+    plt.tight_layout()
     plt.show()
 
     pass
