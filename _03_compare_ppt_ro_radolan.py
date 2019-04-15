@@ -13,6 +13,7 @@ __email__ = "abbas.el-hachem@iws.uni-stuttgart.de"
 
 
 from datetime import timedelta
+from scipy.interpolate import griddata
 
 import _01_intersect_radar_reutlingen as radolan_reutl
 
@@ -26,14 +27,15 @@ import shapefile
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import matplotlib.dates as mdates
 from adjustText import adjust_text
 
 plt.style.use('fast')
 plt.rcParams.update({'font.size': 16})
 plt.rcParams.update({'axes.labelsize': 14})
 
-
+locator = mdates.HourLocator(interval=1)
+locator.MAXTICKS = 10000
 #==============================================================================
 # Data and directories
 #==============================================================================
@@ -110,6 +112,8 @@ def resampleDf(data_frame, df_sep_,
                           closed='right',
                           loffset=label_shift,
                           base=temp_shift).sum()
+    df_res.index = df_res.index.tz_localize('UTC').tz_convert('Etc/GMT+1')
+
     if fillnan:
         df_res.fillna(value=0, inplace=True)
 
@@ -155,6 +159,13 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
                           wanted_ppt_data, time_of_pic,
                           df_ppt_same_time, stn_df,
                           out_dir):
+
+    x, y = np.meshgrid(np.linspace(wanted_lons.min(),
+                                   wanted_lons.max(), 30,
+                                   endpoint=True),
+                       np.linspace(wanted_lats.min(),
+                                   wanted_lats.max(), 30,
+                                   endpoint=True))
     fig, (ax0, ax1) = plt.subplots(2, 1,
                                    figsize=(20, 12),
                                    dpi=100)
@@ -173,9 +184,14 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
                  marker='+', linewidth=1,
                  label='Reutlingen')
 
-    pm = ax0.scatter(wanted_lons, wanted_lats,
-                     c=wanted_ppt_data, marker='o',
-                     s=80, cmap=plt.get_cmap('viridis_r'))
+    zi = griddata((wanted_lons, wanted_lats),
+                  np.round(wanted_ppt_data.data, 2), (x, y),
+                  method='linear')
+
+#     np.nan_to_num(zi == np.nan)
+    pm = ax0.contourf(x, y, zi, 1000, cmap='Blues',
+                      origin='lower')  # , vmin=0,  # extend='max',
+    # vmax=wanted_ppt_data.data.max() + 0.01)
 
     for i in range(len(markers)):
         ax0.scatter(stn_df.lon.values[i], stn_df.lat.values[i],
@@ -193,10 +209,10 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
              c='grey', alpha=0.5)
 
     texts = []
-    for i, txt in enumerate(df_ppt_same_time.index.values):
+    for i, ppt_val in enumerate(df_ppt_same_time.values):
         texts.append(ax0.text(stn_df.lon.values[i],
                               stn_df.lat.values[i],
-                              txt))
+                              np.round(ppt_val, 2)))
     adjust_text(texts, ax=ax0)
 
     texts = []
@@ -208,9 +224,11 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
 
     ax0.set_title('Radolan data for %s' % str(time_of_pic))
 
-    cb = fig.colorbar(pm, shrink=0.85, ax=ax0)
+    cb = fig.colorbar(pm, shrink=0.85, ax=ax0,
+                      ticks=np.arange(0, wanted_ppt_data.data.max()
+                                      + 0.01, 0.05))
     cb.set_label('Ppt (mm/h)')
-
+    cb.set_clim(0, wanted_ppt_data.data.max() + 0.1)
     ax0.set_xlabel("Longitude")
     ax0.set_ylabel("Latitude")
 
@@ -225,7 +243,7 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
     plt.savefig(os.path.join(out_dir, 'data_for_%s_.png' % time_for_save),
                 frameon=True, papertype='a4',
                 bbox_inches='tight', pad_inches=.2)
-
+    plt.close()
     return
 
 
@@ -250,12 +268,21 @@ if __name__ == '__main__':
         wanted_ppt_data, time_of_pic = get_radolan_data(dwd_file,
                                                         final_lons_idx,
                                                         final_lats_idx)
-        assert time_of_pic in df_hourly.index
-        ppt_data = df_hourly.loc[time_of_pic, :]
-        plot_radolan_ppt_data(wanted_lons, wanted_lats, wanted_ppt_data,
-                              time_of_pic, ppt_data, stn_df, out_save_dir)
-#         break
+        if wanted_ppt_data.data.max() > 0:
+            print('Plotting because radar is above 0: ppt is ',
+                  wanted_ppt_data.data.max())
 
+            assert time_of_pic in df_hourly.index
+            ppt_data = df_hourly.loc[time_of_pic, :]
+            try:
+                plot_radolan_ppt_data(wanted_lons, wanted_lats, wanted_ppt_data,
+                                      time_of_pic, ppt_data, stn_df, out_save_dir)
+            except Exception as msg:
+                print(msg)
+                continue
+        else:
+            print('skipping plotting, radar data is 0')
+            continue
     STOP = timeit.default_timer()  # Ending time
     print(('\n****Done with everything on %s.\nTotal run time was'
            ' about %0.4f seconds ***' % (time.asctime(), STOP - START)))

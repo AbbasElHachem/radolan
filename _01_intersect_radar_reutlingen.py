@@ -14,7 +14,7 @@ __copyright__ = 'Institut fuer Wasser- und Umweltsystemmodellierung - IWS'
 __email__ = "abbas.el-hachem@iws.uni-stuttgart.de"
 
 # =============================================================================
-
+from scipy.interpolate import griddata
 from osgeo import osr
 
 import os
@@ -146,11 +146,17 @@ def plot_ppt_Radolan_in_shpfile(extracted_lons,
                                 extracted_ppt_data,
                                 time_of_pic,
                                 shapefile_path):
+
+    x, y = np.meshgrid(np.linspace(extracted_lons.min(),
+                                   extracted_lons.max(), 30,
+                                   endpoint=True),
+                       np.linspace(extracted_lats.min(),
+                                   extracted_lats.max(), 30,
+                                   endpoint=True))
+
     print('Plotting extracted Radolan data and coordinates')
     fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, aspect='equal')
-    # # ax.scatter(lons, lats, alpha=0.25, c='grey')
-    # # pm = ax.pcolormesh(lons, lats, maskeddata, cmap='viridis')
 
     # plot shapefile Reutlingen
     sf = shapefile.Reader(shapefile_path)
@@ -162,14 +168,26 @@ def plot_ppt_Radolan_in_shpfile(extracted_lons,
                 marker='+', linewidth=1,
                 label='Reutlingen')
 
-    pm = ax.scatter(extracted_lons, extracted_lats,
-                    c=extracted_ppt_data, marker='o',
-                    s=120, cmap=plt.get_cmap('viridis_r'))
+    zi = griddata((extracted_lons, extracted_lats),
+                  extracted_ppt_data.data, (x, y),
+                  method='linear')
+
+    pm = ax.contourf(x, y, zi, 1000, cmap='Blues',
+                     origin='lower', vmin=0,  # extend='max',
+                     vmax=extracted_ppt_data.data.max() + 0.01)
+
     plt.title(time_of_pic)
-    cb = fig.colorbar(pm, shrink=0.85)
+    cb = fig.colorbar(pm, shrink=0.85,
+                      ticks=np.arange(0, extracted_ppt_data.data.max()
+                                      + 0.01, 0.25))
+    cb.ax.set_yticklabels(
+        np.arange(0, extracted_ppt_data.data.max()
+                  + 0.01, 0.25))
+    cb.set_clim(0, extracted_ppt_data.data.max() + 0.1)
     cb.set_label('Ppt (mm/h)')
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
+
     plt.show()
     return
 
@@ -189,7 +207,6 @@ if __name__ == '__main__':
         wanted_ppt_data, time_of_pic = read_radolanRW(fpath,
                                                       final_lons_idx,
                                                       final_lats_idx)
-
         plot_ppt_Radolan_in_shpfile(wanted_lons,
                                     wanted_lats,
                                     wanted_ppt_data,

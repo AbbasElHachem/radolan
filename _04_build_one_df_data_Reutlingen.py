@@ -45,8 +45,10 @@ if __name__ == '__main__':
         for ix in in_df.index:
             try:
                 idx = pd.to_datetime(ix, format='%d.%m.%Y')
-                dfs[stn].append(idx, in_df.loc[ix, :])
-            except Exception:
+                dfs[stn].append([idx, in_df.loc[ix, :]])
+                break
+            except Exception as msg:
+                print(msg)
                 break
             continue
 
