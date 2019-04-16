@@ -178,12 +178,14 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
                        np.linspace(wanted_lats.min(),
                                    wanted_lats.max(), 30,
                                    endpoint=True))
-    fig, (ax0, ax1) = plt.subplots(2, 1,
-                                   figsize=(20, 12),
-                                   dpi=100)
-
+#     fig, (ax0, ax1) = plt.subplots(2, 1,
+#                                    figsize=(20, 12),
+#                                    dpi=100)
+    fig, ax0 = plt.subplots(1, 1,
+                            figsize=(20, 12),
+                            dpi=100)
     ax0.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator(10))
-    ax1.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator(10))
+#     ax1.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator(10))
     stn_colrs = ['r', 'b', 'g', 'k', 'c', 'darkgreen',
                  'maroon', 'm', 'k', 'orange', 'brown', 'navy']
 
@@ -194,7 +196,7 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
         x0 = np.array([i[0] for i in shape_.shape.points[:][::-1]])
         y0 = np.array([i[1] for i in shape_.shape.points[:][::-1]])
         ax0.plot(x0, y0, color='r', alpha=0.65, marker='+', linewidth=1,
-                 label='Reutlingen')
+                 label='Reutlingen Bounding Box')
 
     zi = griddata((wanted_lons, wanted_lats),
                   wanted_ppt_data.data, (x, y), method='linear')
@@ -206,14 +208,14 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
     for i in range(len(markers)):
         ax0.scatter(stn_df.lon.values[i], stn_df.lat.values[i],
                     c=stn_colrs[i], marker=markers[i], s=100,
-                    label='Ppt stations')
+                    label='Stn Id %s' % str(stn_df.index.values[i]))
 
-        ax1.scatter(df_ppt_same_time.index[i], df_ppt_same_time.values[i],
-                    c=stn_colrs[i], marker=markers[i], s=100,
-                    label='Station %s' % df_ppt_same_time.index[i])
-
-    ax1.plot(df_ppt_same_time.index, df_ppt_same_time.values,
-             c='grey', alpha=0.5)
+#         ax1.scatter(df_ppt_same_time.index[i], df_ppt_same_time.values[i],
+#                     c=stn_colrs[i], marker=markers[i], s=100,
+#                     label='Station %s' % df_ppt_same_time.index[i])
+#
+#     ax1.plot(df_ppt_same_time.index, df_ppt_same_time.values,
+#              c='grey', alpha=0.5)
 
     texts_ax0 = []
     for i, ppt_val in enumerate(df_ppt_same_time.values):
@@ -222,27 +224,28 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
                                   np.round(ppt_val, 2)))
     adjust_text(texts_ax0, ax=ax0)
 
-    texts_ax1 = []
-    for i, txt in enumerate(df_ppt_same_time.index.values):
-        texts_ax1.append(ax1.text(df_ppt_same_time.index[i],
-                                  df_ppt_same_time.values[i],
-                                  txt))
-    adjust_text(texts_ax1, ax=ax1)
+#     texts_ax1 = []
+#     for i, txt in enumerate(df_ppt_same_time.index.values):
+#         texts_ax1.append(ax1.text(df_ppt_same_time.index[i],
+#                                   df_ppt_same_time.values[i],
+#                                   txt))
+#     adjust_text(texts_ax1, ax=ax1)
 
-    ax0.set_title('Radolan data for %s' % str(time_of_pic))
+    ax0.set_title('Radolan and Station data for %s' % str(time_of_pic))
     ax0.set_xlabel("Longitude"), ax0.set_ylabel("Latitude")
 
     cbar_ticks = np.arange(0, wanted_ppt_data.data.max() + 0.01, 0.25)
+
     cb = fig.colorbar(pm, shrink=0.85, ax=ax0, ticks=cbar_ticks)
 
-    cb.set_label('Ppt (mm/h)')
+    cb.set_label('Radolan Ppt (mm/h)', rotation=-90, labelpad=15)
     cb.set_clim(0, wanted_ppt_data.data.max() + 0.1)
 
-    ax1.set_title('Station data for %s' % str(time_of_pic))
-    ax1.set_xticks([i for i in df_ppt_same_time.index.values])
-    ax1.set_ylabel("Ppt (mm/h)")
-
-    ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.07),
+#     ax1.set_title('Station data for %s' % str(time_of_pic))
+#     ax1.set_xticks([i for i in df_ppt_same_time.index.values])
+#     ax1.set_ylabel("Ppt (mm/h)")
+#
+    ax0.legend(loc='upper center', bbox_to_anchor=(0.3, -0.27, 0.4, 0.2),
                fancybox=True, shadow=True, ncol=5)
 
     time_for_save = str(time_of_pic).replace(':', '_').replace(' ', '_')
@@ -288,7 +291,7 @@ if __name__ == '__main__':
         except Exception as msg:
             print(msg)
             continue
-        break
+#         break
     STOP = timeit.default_timer()  # Ending time
     print(('\n****Done with everything on %s.\nTotal run time was'
            ' about %0.4f seconds ***' % (time.asctime(), STOP - START)))
