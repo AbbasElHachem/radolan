@@ -128,8 +128,8 @@ def read_radolanRW(radolan_fpath,
                    wanted_coords_lats_idx):
     data, metadata = wrl.io.read_radolan_composite(radolan_fpath)
     maskeddata = np.ma.masked_equal(data, metadata["nodataflag"])
-    print('Shape of radolan data is: ', data.shape)
-    print('Metadata in Radolan file is: ', metadata.keys())
+#     print('Shape of radolan data is: ', data.shape)
+#     print('Metadata in Radolan file is: ', metadata.keys())
     print('Time of Radolan file is: ', metadata['datetime'])
     # extract corresponding Radolan data
     wanted_ppt_data = maskeddata[wanted_coords_lon_idx, wanted_coords_lats_idx]
@@ -168,13 +168,17 @@ def plot_ppt_Radolan_in_shpfile(extracted_lons,
                 marker='+', linewidth=1,
                 label='Reutlingen')
 
-    zi = griddata((extracted_lons, extracted_lats),
-                  extracted_ppt_data.data, (x, y),
+    zi = griddata((wanted_lons, wanted_lats),
+                  wanted_ppt_data.data, (x, y),
                   method='linear')
 
-    pm = ax.contourf(x, y, zi, 1000, cmap='Blues',
-                     origin='lower', vmin=0,  # extend='max',
-                     vmax=extracted_ppt_data.data.max() + 0.01)
+    pm = ax.imshow(zi, cmap='Blues',
+                   extent=([wanted_lons.min(),
+                            wanted_lons.max(),
+                            wanted_lats.min(),
+                            wanted_lats.max()]),
+                   origin='lower', aspect="auto",
+                   interpolation='hamming')
 
     plt.title(time_of_pic)
     cb = fig.colorbar(pm, shrink=0.85,
