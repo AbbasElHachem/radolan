@@ -7,6 +7,7 @@ Extract from the data the coordinates and precipitation
 Data of a city defined by it'S bounding box (coordinates)
 Plot the results (longitude, Latitude, Rainfall (mm/h))
 
+If test_ftn is True, one Radolan event is displayed
 '''
 
 __author__ = "Abbas El Hachem"
