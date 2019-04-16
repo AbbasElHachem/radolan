@@ -1,0 +1,104 @@
+Timer unit: 3.01861e-07 s
+
+Total time: 3.81687 s
+File: _03_compare_ppt_ro_radolan.py
+Function: plot_radolan_ppt_data at line 161
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   161                                           @profile
+   162                                           def plot_radolan_ppt_data(wanted_lons, wanted_lats,
+   163                                                                     wanted_ppt_data, time_of_pic,
+   164                                                                     df_ppt_same_time, stn_df,
+   165                                                                     out_dir):
+   166                                               ''' function used to plot two subplots, one for radolan, second for stn'''
+   167         1        123.0    123.0      0.0      x, y = np.meshgrid(np.linspace(wanted_lons.min(),
+   168         1         56.0     56.0      0.0                                     wanted_lons.max(), 30,
+   169         1        408.0    408.0      0.0                                     endpoint=True),
+   170         1         50.0     50.0      0.0                         np.linspace(wanted_lats.min(),
+   171         1         39.0     39.0      0.0                                     wanted_lats.max(), 30,
+   172         1        672.0    672.0      0.0                                     endpoint=True))
+   173         1         16.0     16.0      0.0      fig, (ax0, ax1) = plt.subplots(2, 1,
+   174         1         12.0     12.0      0.0                                     figsize=(20, 12),
+   175         1     564274.0 564274.0      4.5                                     dpi=100)
+   176                                           
+   177         1         80.0     80.0      0.0      ax0.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator(10))
+   178         1         58.0     58.0      0.0      ax1.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator(10))
+   179         1         12.0     12.0      0.0      stn_colrs = ['r', 'b', 'g', 'k', 'c', 'darkgreen',
+   180         1         11.0     11.0      0.0                   'maroon', 'm', 'k', 'orange', 'brown', 'navy']
+   181                                           
+   182         1         12.0     12.0      0.0      markers = ['o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd', '*']
+   183         1      23011.0  23011.0      0.2      sf = shapefile.Reader(shp_reutlingen)
+   184                                           
+   185         2        485.0    242.5      0.0      for shape_ in sf.shapeRecords():
+   186         1         46.0     46.0      0.0          x0 = np.array([i[0] for i in shape_.shape.points[:][::-1]])
+   187         1         33.0     33.0      0.0          y0 = np.array([i[1] for i in shape_.shape.points[:][::-1]])
+   188         1         15.0     15.0      0.0          ax0.plot(x0, y0,
+   189         1         12.0     12.0      0.0                   color='r', alpha=0.65,
+   190         1         12.0     12.0      0.0                   marker='+', linewidth=1,
+   191         1      10200.0  10200.0      0.1                   label='Reutlingen')
+   192                                           
+   193         1         14.0     14.0      0.0      zi = griddata((wanted_lons, wanted_lats),
+   194         1         28.0     28.0      0.0                    wanted_ppt_data.data, (x, y),
+   195         1      42897.0  42897.0      0.3                    method='linear')
+   196                                           
+   197         1         16.0     16.0      0.0      pm = ax0.imshow(zi, cmap='Blues',
+   198         1         56.0     56.0      0.0                      extent=([wanted_lons.min(),
+   199         1         38.0     38.0      0.0                               wanted_lons.max(),
+   200         1         36.0     36.0      0.0                               wanted_lats.min(),
+   201         1         34.0     34.0      0.0                               wanted_lats.max()]),
+   202         1         11.0     11.0      0.0                      origin='lower', aspect="auto",
+   203         1       4387.0   4387.0      0.0                      interpolation='hamming')
+   204        13        188.0     14.5      0.0      for i in range(len(markers)):
+   205        12       3105.0    258.8      0.0          ax0.scatter(stn_df.lon.values[i], stn_df.lat.values[i],
+   206        12        153.0     12.8      0.0                      c=stn_colrs[i],
+   207        12        139.0     11.6      0.0                      marker=markers[i], s=100,
+   208        12     120492.0  10041.0      1.0                      label='Ppt stations')
+   209                                           
+   210        12        560.0     46.7      0.0          ax1.scatter(df_ppt_same_time.index[i], df_ppt_same_time.values[i],
+   211        12        146.0     12.2      0.0                      c=stn_colrs[i],
+   212        12        137.0     11.4      0.0                      marker=markers[i], s=100,
+   213        12     124146.0  10345.5      1.0                      label='Station %s' % df_ppt_same_time.index[i])
+   214                                           
+   215         1         16.0     16.0      0.0      ax1.plot(df_ppt_same_time.index,
+   216         1         24.0     24.0      0.0               df_ppt_same_time.values,
+   217         1      12062.0  12062.0      0.1               c='grey', alpha=0.5)
+   218                                           
+   219         1         13.0     13.0      0.0      texts_ax0 = []
+   220        13        251.0     19.3      0.0      for i, ppt_val in enumerate(df_ppt_same_time.values):
+   221        12       1226.0    102.2      0.0          texts_ax0.append(ax0.text(stn_df.lon.values[i],
+   222        12        994.0     82.8      0.0                                    stn_df.lat.values[i],
+   223        12      19035.0   1586.2      0.2                                    np.round(ppt_val, 2)))
+   224         1    2146745.0 2146745.0     17.0      adjust_text(texts_ax0, ax=ax0)
+   225                                           
+   226         1         16.0     16.0      0.0      texts_ax1 = []
+   227        13        232.0     17.8      0.0      for i, txt in enumerate(df_ppt_same_time.index.values):
+   228        12        385.0     32.1      0.0          texts_ax1.append(ax1.text(df_ppt_same_time.index[i],
+   229        12        310.0     25.8      0.0                                    df_ppt_same_time.values[i],
+   230        12      15268.0   1272.3      0.1                                    txt))
+   231         1    2562184.0 2562184.0     20.3      adjust_text(texts_ax1, ax=ax1)
+   232                                           
+   233         1       1007.0   1007.0      0.0      ax0.set_title('Radolan data for %s' % str(time_of_pic))
+   234                                           
+   235         1         15.0     15.0      0.0      cb = fig.colorbar(pm, shrink=0.85, ax=ax0,
+   236         1         67.0     67.0      0.0                        ticks=np.arange(0, wanted_ppt_data.data.max()
+   237         1     100316.0 100316.0      0.8                                        + 0.01, 0.25))
+   238         1        160.0    160.0      0.0      cb.set_label('Ppt (mm/h)')
+   239         1        119.0    119.0      0.0      cb.set_clim(0, wanted_ppt_data.data.max() + 0.1)
+   240         1        155.0    155.0      0.0      ax0.set_xlabel("Longitude")
+   241         1        136.0    136.0      0.0      ax0.set_ylabel("Latitude")
+   242                                           
+   243         1        961.0    961.0      0.0      ax1.set_title('Station data for %s' % str(time_of_pic))
+   244         1      58018.0  58018.0      0.5      ax1.set_xticks([i for i in df_ppt_same_time.index.values])
+   245         1        154.0    154.0      0.0      ax1.set_ylabel("Ppt (mm/h)")
+   246                                           
+   247         1         13.0     13.0      0.0      ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.07),
+   248         1      36520.0  36520.0      0.3                 fancybox=True, shadow=True, ncol=5)
+   249         1         30.0     30.0      0.0      time_for_save = str(time_of_pic).replace(':', '_').replace(' ', '_')
+   250         1    1675388.0 1675388.0     13.2      plt.tight_layout()
+   251         1        109.0    109.0      0.0      plt.savefig(os.path.join(out_dir, 'data_for_%s_.png' % time_for_save),
+   252         1         12.0     12.0      0.0                  frameon=True, papertype='a4',
+   253         1    5077837.0 5077837.0     40.2                  bbox_inches='tight', pad_inches=.2)
+   254         1      38471.0  38471.0      0.3      plt.close()
+   255         1         19.0     19.0      0.0      return
+
