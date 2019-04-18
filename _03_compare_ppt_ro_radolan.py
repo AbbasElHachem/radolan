@@ -23,6 +23,7 @@ __email__ = "abbas.el-hachem@iws.uni-stuttgart.de"
 
 from datetime import timedelta
 from scipy.interpolate import griddata
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import _01_intersect_radar_reutlingen as radolan_reutl
 
@@ -65,7 +66,8 @@ path_to_radolan_data_dir = (r'X:\hiwi\ElHachem\Jochen'
 #                             r'\Reutlingen_Radolan'
 #                             r'\raw_data_2_event_23122018_14122018_')
 
-shp_reutlingen = r'x:\exchange\seidel\tracks\RT_bbox.shp'
+# shp_reutlingen = r'x:\exchange\seidel\tracks\RT_bbox.shp'
+shp_reutlingen = r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan\EZG_wgs84.shp'
 assert os.path.exists(shp_reutlingen), 'wrong shapefile location'
 
 out_save_dir = (r'X:\hiwi\ElHachem\Jochen'
@@ -178,25 +180,22 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
                        np.linspace(wanted_lats.min(),
                                    wanted_lats.max(), 30,
                                    endpoint=True))
-#     fig, (ax0, ax1) = plt.subplots(2, 1,
-#                                    figsize=(20, 12),
-#                                    dpi=100)
+
     fig, ax0 = plt.subplots(1, 1,
-                            figsize=(20, 12),
+                            figsize=(20, 20),
                             dpi=100)
     ax0.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator(10))
-#     ax1.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator(10))
+
     stn_colrs = ['r', 'b', 'g', 'k', 'c', 'darkgreen',
                  'maroon', 'm', 'k', 'orange', 'brown', 'navy']
 
     markers = ['o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd', '*']
-    sf = shapefile.Reader(shp_reutlingen)
 
+    sf = shapefile.Reader(shp_reutlingen)
     for shape_ in sf.shapeRecords():
         x0 = np.array([i[0] for i in shape_.shape.points[:][::-1]])
         y0 = np.array([i[1] for i in shape_.shape.points[:][::-1]])
-        ax0.plot(x0, y0, color='r', alpha=0.65, marker='+', linewidth=1,
-                 label='Reutlingen Bounding Box')
+        ax0.plot(x0, y0, color='grey', alpha=0.5, marker=',', linewidth=0.5)
 
     zi = griddata((wanted_lons, wanted_lats),
                   wanted_ppt_data.data, (x, y), method='linear')
@@ -210,13 +209,6 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
                     c=stn_colrs[i], marker=markers[i], s=100,
                     label='Stn Id %s' % str(stn_df.index.values[i]))
 
-#         ax1.scatter(df_ppt_same_time.index[i], df_ppt_same_time.values[i],
-#                     c=stn_colrs[i], marker=markers[i], s=100,
-#                     label='Station %s' % df_ppt_same_time.index[i])
-#
-#     ax1.plot(df_ppt_same_time.index, df_ppt_same_time.values,
-#              c='grey', alpha=0.5)
-
     texts_ax0 = []
     for i, ppt_val in enumerate(df_ppt_same_time.values):
         texts_ax0.append(ax0.text(stn_df.lon.values[i],
@@ -224,32 +216,24 @@ def plot_radolan_ppt_data(wanted_lons, wanted_lats,
                                   np.round(ppt_val, 2)))
     adjust_text(texts_ax0, ax=ax0)
 
-#     texts_ax1 = []
-#     for i, txt in enumerate(df_ppt_same_time.index.values):
-#         texts_ax1.append(ax1.text(df_ppt_same_time.index[i],
-#                                   df_ppt_same_time.values[i],
-#                                   txt))
-#     adjust_text(texts_ax1, ax=ax1)
-
     ax0.set_title('Radolan and Station data for %s' % str(time_of_pic))
     ax0.set_xlabel("Longitude"), ax0.set_ylabel("Latitude")
 
     cbar_ticks = np.arange(0, wanted_ppt_data.data.max() + 0.01, 0.25)
 
-    cb = fig.colorbar(pm, shrink=0.85, ax=ax0, ticks=cbar_ticks)
+    divider = make_axes_locatable(ax0)
+    cax = divider.append_axes("right", size="5%", pad=0.15)
 
+    cb = fig.colorbar(pm, shrink=0.85, cax=cax, ticks=cbar_ticks)
     cb.set_label('Radolan Ppt (mm/h)', rotation=-90, labelpad=15)
     cb.set_clim(0, wanted_ppt_data.data.max() + 0.1)
 
-#     ax1.set_title('Station data for %s' % str(time_of_pic))
-#     ax1.set_xticks([i for i in df_ppt_same_time.index.values])
-#     ax1.set_ylabel("Ppt (mm/h)")
-#
-    ax0.legend(loc='upper center', bbox_to_anchor=(0.3, -0.27, 0.4, 0.2),
+    ax0.legend(loc='upper center', bbox_to_anchor=(0.0, -0.27, 1, 0.2),
                fancybox=True, shadow=True, ncol=5)
-
+    ax0.set_aspect(1.0)
+    ax0.grid(alpha=0.25)
     time_for_save = str(time_of_pic).replace(':', '_').replace(' ', '_')
-
+    plt.tight_layout()
     plt.savefig(os.path.join(out_dir, 'data_for_%s_.png' % time_for_save),
                 frameon=True, papertype='a4', tight_layout=True,
                 bbox_inches='tight', pad_inches=.2)

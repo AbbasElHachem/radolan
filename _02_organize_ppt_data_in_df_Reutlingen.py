@@ -32,7 +32,7 @@ main_dir = Path(os.getcwd())
 os.chdir(main_dir)
 
 # path to ppt data Reutlingen
-in_ppt_file = r'Niederschlagsdaten_copy_abbas.csv'
+in_ppt_file = r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan\Niederschlagsdaten_Copy.csv'
 assert os.path.exists(in_ppt_file)
 
 
@@ -69,7 +69,13 @@ def makeDF(ppt_file_path, start_date, end_date):
     in_df.index = pd.to_datetime(in_df.index, format='%d.%m.%Y %H:%M:%S')
 
     # make ppt values as float
-    in_df['ppt'].apply(lambda x: float(x))
+    vals = np.empty(shape=in_df.ppt.values.shape[0])
+    for i, str_val in enumerate(in_df.ppt.values):
+        try:
+            vals[i] = float(str_val.replace(',', '.'))
+        except:
+            vals[i] = -9999
+    in_df['ppt'] = vals
 
     # create datetime index for final DF
     date_range = pd.date_range(start=start_date, end=end_date, freq='Min')
@@ -84,9 +90,10 @@ def makeDF(ppt_file_path, start_date, end_date):
         df_stn = in_df[in_df.station == stn_nbr]['ppt']
         idx_intersct = new_df.index.intersection(df_stn.index)
         new_df.loc[idx_intersct, stn_nbr] = df_stn.values
-
+    new_df = new_df[new_df >= 0]
     # save final df and return it
-    new_df.to_csv('final_df_Reutlingen_.csv', sep=';', float_format='%0.2f')
+    new_df.to_csv(r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan\final_df_Reutlingen_.csv',
+                  sep=';', float_format='%0.3f')
     return new_df
 
 # =============================================================================
@@ -102,7 +109,7 @@ if __name__ == '__main__':
     start_date = '2017-07-01 00:01:00'
     end_date = '2019-04-05 00:00:00'
 
-    makeDF(in_ppt_file)  # call function here
+    makeDF(in_ppt_file, start_date, end_date)  # call function here
 
     STOP = timeit.default_timer()  # Ending time
     print(('\n****Done with everything on %s.\nTotal run time was'
