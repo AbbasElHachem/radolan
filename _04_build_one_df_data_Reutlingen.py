@@ -24,13 +24,31 @@ import os
 import timeit
 import time
 import pandas as pd
+import numpy as np
 path_to_seperate_dfs = (r'X:\hiwi\ElHachem\Jochen'
                         r'\Reutlingen_Radolan\seperate_data')
 
 path_to_ppt_df = (r'X:\hiwi\ElHachem\Jochen'
                   r'\Reutlingen_Radolan'
-                  r'\final_df_Reutlingen_.csv')
+                  r'\df_all_21052014_05042019.csv')
 
+start_date = '15-05-2014 00:00:00'
+end_date = '01-04-2019 00:00:00'
+
+date_range = pd.date_range(start=start_date, end=end_date, freq='Min')
+
+data = np.zeros(shape=(date_range.shape[0], 12))
+data[data == 0] = np.nan
+
+#  df12 = pd.read_csv(r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan\seperate_da
+#     ...: ta\0000000012_0102_20170712105304_copy_Abbas.csv", sep=';', parse_dates=[['
+#     ...: date1', 'date2']], infer_datetime_format=True)
+
+# df12.rename(columns={'date1_date2': 'Time'}, inplace=True)
+# df12.set_index('Time', inplace=True)
+
+final_df_combined = pd.DataFrame(data=data, index=date_range,
+                                 columns=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
 
 if __name__ == '__main__':
 
