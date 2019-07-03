@@ -75,28 +75,28 @@ for df_file in all_dfs:
                         parse_dates=True,
                         infer_datetime_format=True)
     final_df_combined.loc[in_df.index, stn_nbr] = in_df.values.ravel()
+
+#=====================================================================
 #
-# #==============================================================================
-# #
-# #==============================================================================
-#
-#
+#=====================================================================
+
 df1 = pd.read_csv(path_to_one_ppt_df, sep=';',
                   parse_dates=[['date1', 'date2']],
                   infer_datetime_format=True)
 
 df1.rename(columns={'date1_date2': 'Time'}, inplace=True)
 df1.set_index('Time', inplace=True)
-
-
+#
+#
 for ix, stn in zip(df1.index, df1.stn.values):
     print(ix, stn)
-    stn_str = str(stn)
-    final_df_combined.loc[ix, stn_str] = df1[df1.stn == stn].loc[ix, 'ppt']
+#     stn_str = str(stn)
+    final_df_combined.loc[ix, stn] = df1[df1.stn == stn].loc[ix, 'ppt']
+
+
+#=====================================================================
 #
-# #==============================================================================
-# #
-# #==============================================================================
+#=====================================================================
 df2 = pd.read_csv(path_to_second_ppt_df, sep=';',
                   parse_dates=[['date1', 'date2']],
                   infer_datetime_format=True)
@@ -110,17 +110,17 @@ df2.set_index('Time', inplace=True)
 
 for ix, stn in zip(df2.index, df2.stn.values):
 
-    stn_str = str(stn)
-#     ix_timefmt = datetime.datetime.strptime(ix, '%d.%m.%Y %H:%M:%S')
-#     ix_timefmt = datetime.datetime.strftime(ix_timefmt, '%Y-%m-%d %H:%M:%S')
+    #     stn_str = str(stn)
+    #     ix_timefmt = datetime.datetime.strptime(ix, '%d.%m.%Y %H:%M:%S')
+    #     ix_timefmt = datetime.datetime.strftime(ix_timefmt, '%Y-%m-%d %H:%M:%S')
     print(ix, stn)
     final_df_combined.loc[ix,
-                          stn_str] = df2[df2.stn == stn].loc[ix, 'ppt']
+                          stn] = df2[df2.stn == stn].loc[ix, 'ppt']
+
+#=====================================================================
 #
-# #==============================================================================
+#=====================================================================
 # #
-# #==============================================================================
-#
 df3 = pd.read_csv(path_to_third_ppt_df, sep=';',
                   parse_dates=[['date1', 'date2']],
                   infer_datetime_format=True)
@@ -131,8 +131,8 @@ df3.set_index('Time', inplace=True)
 
 for ix, stn in zip(df3.index, df3.stn.values):
     print(ix, stn)
-    stn_str = str(stn)
-    final_df_combined.loc[ix, stn_str] = df3[df3.stn == stn].loc[ix, 'ppt']
+#     stn_str = str(stn)
+    final_df_combined.loc[ix, stn] = df3[df3.stn == stn].loc[ix, 'ppt']
 
 #==============================================================================
 #
@@ -141,7 +141,6 @@ df4 = pd.read_csv(path_to_fourth_ppt_df, sep=';',
                   parse_dates=True, index_col=0,
                   infer_datetime_format=True)
 
-# df4.index = df4.index.strftime('%Y-%m-%d %H:%M:%S')
 
 for stn in df4.columns:
     print(stn)
