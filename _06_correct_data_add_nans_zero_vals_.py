@@ -46,13 +46,13 @@ temp_res = '1Min'
 #==============================================================================
 #
 #==============================================================================
-# read ppt df and define time frequency as 1min
+# read ppt df and make a copy
+
 df_ppt = pd.read_csv(df_rainfall_file, sep=';', index_col=0,
                      parse_dates=True, infer_datetime_format=True,
                      engine='c')
 
 df_ppt_new = df_ppt.copy(deep=True)
-# df_ppt = df_ppt.asfreq(freq='1Min')
 
 
 imp_days = df_ppt.index[(df_ppt.index.hour == 0) &
@@ -83,25 +83,39 @@ for ix_end, ix_start in zip(df_with_start_end_days.index[::2],
         val_end_day = day_to_test_end[stn_id]
 
         if (val_start_day == 0) and (val_end_day == 0):
-            #             print('ZEROS')
 
             time_range_zeros = pd.date_range(
                 start=day_to_test_end.name,
-                end=day_to_test_end.name + pd.Timedelta(days=1),
+                end=day_to_test_end.name + pd.Timedelta(minutes=1439),
                 freq=temp_res)
-            df_ppt_new.loc[
-                df_ppt_new.index.intersection(time_range_zeros), stn_id] = 0
+
+            cmn_idx = df_ppt_new.index.intersection(time_range_zeros)
+
+            values_for_that_day = df_ppt_new.loc[cmn_idx, stn_id]
+
+            values_for_that_day_no_blank = values_for_that_day[
+                values_for_that_day.values >= 0]
+
+            if np.sum(values_for_that_day_no_blank) == 0:
+                df_ppt_new.loc[cmn_idx, stn_id] = 0
+
+            elif np.sum(values_for_that_day_no_blank) > 0:
+                ix_to_replace = pd.DatetimeIndex(
+                    [ixk for ixk in values_for_that_day.index
+                        if ixk not in values_for_that_day_no_blank.index])
+                df_ppt_new.loc[ix_to_replace, stn_id] = 0
 
         if (math.isnan(val_start_day)) and (math.isnan(val_end_day)):
             time_range_nans = pd.date_range(
                 start=day_to_test_end.name,
-                end=day_to_test_end.name + pd.Timedelta(days=1),
+                end=day_to_test_end.name + pd.Timedelta(minutes=1439),
                 freq=temp_res)
             df_ppt_new.loc[
                 df_ppt_new.index.intersection(time_range_nans), stn_id] = np.nan
+# df_ppt_new
+# assert df_ppt_new.sum() == df_ppt.sum()
 
-
-print('Done with Everything')
+print('Savving new DF')
 # import matplotlib.pyplot as plt
 # stn0 = df_ppt_new.loc[:, '1']
 # stn1 = df_ppt.loc[:, '1']
@@ -111,5 +125,7 @@ print('Done with Everything')
 # plt.show()
 
 # save df
-df_ppt_new.to_csv((main_dir / 'data_df_with_zero_nan_values.csv'),
+df_ppt_new.to_csv((main_dir / 'data_df_with_zero_and_nan_values.csv'),
                   sep=';')
+
+print('Done with Everything')
