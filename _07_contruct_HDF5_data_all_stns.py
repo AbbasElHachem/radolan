@@ -38,10 +38,11 @@ os.chdir(main_dir)
 
 # path for rainfall df, all stations
 df_rainfall_file = (r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan'
-                    r'\\dataframe_as_HDF5_Reutlingen_Stations\data_df_with_zero_and_nan_values_2020.csv')
+                    r'\dataframe_as_HDF5_Reutlingen_Stations'
+                    r'\data_df_with_zero_and_nan_values_23062020.csv')
 # path to coordinates df
-ppt_coords = (r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan"
-              r"\tobi_metadata_ser_copy_abbas.csv")
+ppt_coords = (r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan\RT_Pluviodaten"
+              r"\tobi_metadata_ser.csv")
 
 #==============================================================================
 #
@@ -57,18 +58,21 @@ ppt_data = np.array(df_ppt.values)
 
 # read coordinates df
 df_coords = pd.read_csv(ppt_coords, sep=';', index_col=0)
+lons_float = [np.float(_v.replace(',', '.')) for _v in df_coords['lon'].values]
+lats_float = [np.float(_v.replace(',', '.')) for _v in df_coords['lat'].values]
+z_float = [np.float(_v) for _v in df_coords['z'].values]
 
 # define hdf5 object
-hf = h5py.File("Reutlingen_12_ppt_stns_21052014_31122019.h5", "w")
+hf = h5py.File("Reutlingen_12_ppt_stns_21052014_23062020.h5", "w")
 
 # assign ppt data as dataset
 hf.create_dataset('data', data=ppt_data, dtype='f8')
 
 # create a group for coordinates, assign lon, lat and elevation
 g2 = hf.create_group('coords')
-g2.create_dataset('lon', data=df_coords['lon'], dtype='f8')
-g2.create_dataset('lat', data=df_coords['lat'], dtype='f8')
-g2.create_dataset('z', data=df_coords['z'], dtype='f8')
+g2.create_dataset('lon', data=lons_float, dtype='f8')
+g2.create_dataset('lat', data=lats_float, dtype='f8')
+g2.create_dataset('z', data=z_float, dtype='f8')
 
 # create a dataset for station name
 hf.create_dataset('name', data=np.string_(df_coords['name']))
