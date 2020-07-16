@@ -6,3 +6,4 @@ encoding/_04_build_one_df_data_Reutlingen.py=utf-8
 encoding/_05_make_reutlingen_data_for_df.py=utf-8
 encoding/_06_correct_data_add_nans_zero_vals_.py=utf-8
 encoding/_07_contruct_HDF5_data_all_stns.py=utf-8
+encoding/_08_create_HDF5_Reutlingen_new.py=utf-8
