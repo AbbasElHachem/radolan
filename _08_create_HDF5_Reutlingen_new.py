@@ -43,7 +43,7 @@ ppt_coords = (r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan\RT_Pluviodaten"
               r"\tobi_metadata_ser.csv")
 
 # select time period and temporal resolution
-start_dt = '2014-01-01 00:00'
+start_dt = '2014-05-01 00:00'
 end_dt = '2020-06-24 00:00'
 
 freq = '1min'
@@ -103,7 +103,7 @@ dates = pd.date_range(start_dt, end_dt, freq=freq)
 blank_df = pd.DataFrame(index=dates)  # , data=np.zeros(dates.shape))
 
 
-hdf5_path = os.path.join('Reutlingen_pluvios_test2.h5')
+hdf5_path = os.path.join('Reutlingen_pluvios_new.h5')
 
 if not os.path.isfile(hdf5_path):
     # number of maximum timesteps
@@ -263,7 +263,7 @@ for i_idx, stn_name in enumerate(df_ppt.columns):
         end_idx = temp_station.index[-1]
     except Exception as msg:
         print('Error with start-end index', msg)
-
+    print(np.nansum(temp_station.values))
     # if temp_station.index.freq
     hf.root.data[:, i_idx] = blank_df.join(temp_station).values.flatten()
     hf.root.coord.lon[i_idx] = np.float(

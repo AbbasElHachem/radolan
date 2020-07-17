@@ -14,12 +14,19 @@ import glob
 HDF52 = HDF5(
     infile=(r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan"
             r"\dataframe_as_HDF5_Reutlingen_Stations"
-            r"\Reutlingen_12pluvios_215052014_23062020.h5"))
+            r"\Reutlingen_pluvios_new.h5"))
 all_ids = HDF52.get_all_names()
 
 data = HDF52.get_pandas_dataframe('12')
 
+#==============================================================================
+# DWD
+HDF53 = HDF5(
+    infile=(r"X:\staff\elhachem\ClimXtreme\03_data\00_DWD\dwd_comb_1min_data.h5"))
+dwd_all_ids = HDF52.get_all_names()
 
+#data = HDF52.get_pandas_dataframe('12')
+#==============================================================================
 all_files = glob.glob(
     r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan'
     r'\RT_Pluviodaten'
@@ -60,9 +67,17 @@ for i, df_file in enumerate(all_files):
         # create df
         df_ppt = pd.DataFrame(index=time_ix_range, data=ppt_data_arr)
 
-        data = HDF52.get_pandas_dataframe(str(stn_id))
+        data = HDF52.get_pandas_dataframe(str(1))
+        data_2018 = data.loc['2019-10-01 00:00:00':'2020-12-31 00:00:00', :]
+        data_2018.plot()
+        data_2018.isna().sum()
 
         df_cmn = data.loc[df_ppt.index, :]
+
+        dwd_data = HDF53.get_pandas_dataframe('P03278')
+        dwd_data_2018 = dwd_data.loc[data_2018.index, :]
+        #plt.plot(data_2018.values, dwd_data_2018.values)
+        dwd_data_2018.sum()
         df_cmn.sum()
         df_ppt.sum()
 
@@ -89,8 +104,9 @@ for i, df_file in enumerate(all_files):
             assert len(ppt_data_arr) == len(time_ix_time_obj)
 
             # create df
-            df_ppt = pd.DataFrame(index=time_ix_range, data=ppt_data_arr)
-
+            df_ppt = pd.DataFrame(index=time_ix_range,
+                                  data=ppt_data_arr).dropna()
+            df_ppt.iloc[np.argmax(df_ppt.values) - 2, :]
         except Exception as msg:
             print(msg, stn_id, df_file)
             continue

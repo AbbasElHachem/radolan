@@ -55,41 +55,45 @@ df_ppt = pd.read_csv(df_rainfall_file, sep=';', index_col=0,
 df_ppt_new = df_ppt.copy(deep=True)
 
 
-imp_days = df_ppt.index[(df_ppt.index.hour == 0) &
-                        ((df_ppt.index.minute == 0) |
-                            (df_ppt.index.minute == 1))]
+start_minutes = df_ppt.index[(df_ppt.index.hour == 0)
+                             & (df_ppt.index.minute == 0)]
+end_minutes = df_ppt.index[(df_ppt.index.hour == 23)
+                           & (df_ppt.index.minute == 59)]
 
-df_with_start_end_days = df_ppt.loc[df_ppt.index.intersection(
-    imp_days), :]
+# keep cmn days
+start_minutes_cmn = pd.DatetimeIndex(
+    [strt for strt, endt in zip(start_minutes, end_minutes)
+     if strt.day == endt.day])
+end_minutes_cmn = pd.DatetimeIndex(
+    [endt for endt in end_minutes if endt.day in start_minutes_cmn.day])
+
+assert start_minutes_cmn.size == end_minutes_cmn.size
 
 
-for ix_end, ix_start in zip(df_with_start_end_days.index[::2],
-                            df_with_start_end_days.index[1::2]):
+for ix_end, ix_start in zip(end_minutes_cmn, start_minutes_cmn):
     print(ix_end, ix_start)
-    # get start minute
-    day_to_test_start = df_with_start_end_days.loc[ix_start, :]
-    day_to_test_end = df_with_start_end_days.loc[ix_end, :]
 
-    # make sure it is same day
-    assert ((day_to_test_start.name.year == day_to_test_end.name.year)
-            and (day_to_test_start.name.month == day_to_test_end.name.month)
-            and (day_to_test_start.name.day == day_to_test_end.name.day)
-            and (day_to_test_start.name.hour == day_to_test_end.name.hour)
-            and (day_to_test_start.name.minute == 1)
-            and (day_to_test_end.name.minute == 0))
+    time_range_to_fill = pd.date_range(
+        start=ix_start,
+        end=ix_end,
+        freq=temp_res)
+    # get start minute
+    day_to_test_start = df_ppt.loc[ix_start, :]
+    day_to_test_end = df_ppt.loc[ix_end, :]
+#    break
 
     for stn_id in day_to_test_start.index:
         val_start_day = day_to_test_start[stn_id]
         val_end_day = day_to_test_end[stn_id]
+        #  break
+        if (math.isnan(val_start_day)) and (math.isnan(val_end_day)):
+            #print('adding nans')
+            df_ppt_new.loc[
+                df_ppt_new.index.intersection(time_range_to_fill), stn_id] = np.nan
 
-        if (val_start_day == 0) and (val_end_day == 0):
+        elif (not math.isnan(val_start_day)) | (not math.isnan(val_end_day)):
 
-            time_range_zeros = pd.date_range(
-                start=day_to_test_end.name,
-                end=day_to_test_end.name + pd.Timedelta(minutes=1439),
-                freq=temp_res)
-
-            cmn_idx = df_ppt_new.index.intersection(time_range_zeros)
+            cmn_idx = df_ppt_new.index.intersection(time_range_to_fill)
 
             values_for_that_day = df_ppt_new.loc[cmn_idx, stn_id]
 
@@ -100,18 +104,13 @@ for ix_end, ix_start in zip(df_with_start_end_days.index[::2],
                 df_ppt_new.loc[cmn_idx, stn_id] = 0
 
             elif np.sum(values_for_that_day_no_blank) > 0:
+               # print('adding zeros and vals')
                 ix_to_replace = pd.DatetimeIndex(
                     [ixk for ixk in values_for_that_day.index
                         if ixk not in values_for_that_day_no_blank.index])
                 df_ppt_new.loc[ix_to_replace, stn_id] = 0
 
-        if (math.isnan(val_start_day)) and (math.isnan(val_end_day)):
-            time_range_nans = pd.date_range(
-                start=day_to_test_end.name,
-                end=day_to_test_end.name + pd.Timedelta(minutes=1439),
-                freq=temp_res)
-            df_ppt_new.loc[
-                df_ppt_new.index.intersection(time_range_nans), stn_id] = np.nan
+
 # df_ppt_new
 # assert df_ppt_new.sum() == df_ppt.sum()
 
@@ -126,6 +125,6 @@ print('Savving new DF')
 
 # save df
 df_ppt_new.to_csv((main_dir / 'data_df_with_zero_and_nan_values_23062020.csv'),
-                  sep=';')
+                  sep=';', float_format='%0.2f')
 
 print('Done with Everything')

@@ -15,8 +15,7 @@ import matplotlib.pyplot as plt
 
 df_exsisting = pd.read_csv(
     r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan"
-    r"\dataframe_as_HDF5_Reutlingen_Stations"
-    r"\data_df_with_zero_and_nan_values_2020.csv",
+    r"\dataframe_as_HDF5_Reutlingen_Stations\data_df_21102019.csv",
     sep=';', index_col=0, engine='c', infer_datetime_format=True, parse_dates=True)
 
 
@@ -80,11 +79,13 @@ for i, df_file in enumerate(all_files):
 
         # create df
         df_ppt = pd.DataFrame(index=time_ix_range, data=ppt_data_arr)
+        # df_ppt.plot()
         final_df_combined.loc[df_ppt.index, stn_id] = df_ppt.values.ravel()
 
         # save df
         # df_ppt.to_csv()
     except Exception as msg:
+        print(msg, stn_id, 'ESE')
         try:
             df = pd.read_csv(df_file, sep=';', encoding='latin-1',
                              skiprows=2, header=None)
@@ -109,12 +110,6 @@ for i, df_file in enumerate(all_files):
         except Exception as msg:
             print(msg, stn_id, df_file)
             continue
-
-
-# In[21]:
-
-
-final_df_combined.tail(2)
 
 
 # In[22]:
