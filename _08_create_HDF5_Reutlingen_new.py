@@ -16,12 +16,12 @@ IWS UNI STUTTGART
 import os
 import numpy as np
 import pandas as pd
-import glob
+#import glob
 import tables
-import fiona
-import shapely.geometry as sh_geo
+#import fiona
+#import shapely.geometry as sh_geo
 import pyproj
-
+import matplotlib.pyplot as plt
 #from _00_functions import convert_coords_fr_wgs84_to_utm32_
 
 #os.environ["PYTHONIOENCODING"] = "latin-1"
@@ -37,14 +37,14 @@ os.chdir(main_dir)
 # path for rainfall df, all stations
 df_rainfall_file = (r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan'
                     r'\dataframe_as_HDF5_Reutlingen_Stations'
-                    r'\data_df_with_zero_and_nan_values_23062020.csv')
+                    r'\data_df_with_zero_and_nan_values_18092020.csv')
 # path to coordinates df
 ppt_coords = (r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan\RT_Pluviodaten"
               r"\tobi_metadata_ser.csv")
 
 # select time period and temporal resolution
 start_dt = '2014-05-01 00:00'
-end_dt = '2020-06-24 00:00'
+end_dt = '2020-09-18 00:00'
 
 freq = '1min'
 # TODO: add resample frequency as a parameter
@@ -256,7 +256,7 @@ for i_idx, stn_name in enumerate(df_ppt.columns):
 #             os.path.basename(file_path).split('_')[2],
 #             stn_mac)), sep=';', index_col=0, engine='c')
     temp_station = df_ppt.loc[:, stn_name]
-
+    
     assert not temp_station.index.duplicated().any(), 'still duplicates in DF'
     try:
         start_idx = temp_station.index[0]
@@ -287,3 +287,10 @@ for i_idx, stn_name in enumerate(df_ppt.columns):
 
     # hf.root.name[i_idx] = np.string_(stationname)
     i_station += 1
+    
+    plt.ioff()
+    plt.figure(figsize=(12, 8))
+    plt.plot(temp_station.index, temp_station.values)
+    plt.savefig(r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan\dataframe_as_HDF5_Reutlingen_Stations\%s.png'
+                % stationname)
+    plt.close()
