@@ -14,7 +14,7 @@ import glob
 HDF52 = HDF5(
     infile=(r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan"
             r"\dataframe_as_HDF5_Reutlingen_Stations"
-            r"\Reutlingen_pluvios_new.h5"))
+            r"\Reutlingen_pluvios_26072021.h5"))
 all_ids = HDF52.get_all_names()
 
 data = HDF52.get_pandas_dataframe('12')

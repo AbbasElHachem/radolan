@@ -37,14 +37,14 @@ os.chdir(main_dir)
 # path for rainfall df, all stations
 df_rainfall_file = (r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan'
                     r'\dataframe_as_HDF5_Reutlingen_Stations'
-                    r'\data_df_with_zero_and_nan_values_18092020.csv')
+                    r'\data_df_with_zero_and_nan_values_26072021.csv')
 # path to coordinates df
 ppt_coords = (r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan\RT_Pluviodaten"
               r"\tobi_metadata_ser.csv")
 
 # select time period and temporal resolution
 start_dt = '2014-05-01 00:00'
-end_dt = '2020-09-18 00:00'
+end_dt = '2021-07-26 00:00'
 
 freq = '1min'
 # TODO: add resample frequency as a parameter
@@ -238,10 +238,11 @@ i_station = 0
 
 
 df_coords = pd.read_csv(ppt_coords, sep=';', index_col=0)
-lons_float = [np.float(_v.replace(',', '.')) for _v in df_coords['lon'].values]
-lats_float = [np.float(_v.replace(',', '.')) for _v in df_coords['lat'].values]
+# lons_float = [np.float(_v.replace(',', '.')) for _v in df_coords['lon'].values]
+# lats_float = [np.float(_v.replace(',', '.')) for _v in df_coords['lat'].values]
 
-
+lons_float = df_coords['lon'].values
+lats_float = df_coords['lat'].values
 for i_idx, stn_name in enumerate(df_ppt.columns):
 
     stationname = stn_name
@@ -256,7 +257,7 @@ for i_idx, stn_name in enumerate(df_ppt.columns):
 #             os.path.basename(file_path).split('_')[2],
 #             stn_mac)), sep=';', index_col=0, engine='c')
     temp_station = df_ppt.loc[:, stn_name]
-    
+
     assert not temp_station.index.duplicated().any(), 'still duplicates in DF'
     try:
         start_idx = temp_station.index[0]
@@ -266,16 +267,14 @@ for i_idx, stn_name in enumerate(df_ppt.columns):
     print(np.nansum(temp_station.values))
     # if temp_station.index.freq
     hf.root.data[:, i_idx] = blank_df.join(temp_station).values.flatten()
-    hf.root.coord.lon[i_idx] = np.float(
-        metadata['lon'].loc[int(stn_mac)].replace(',', '.'))
-    hf.root.coord.lat[i_idx] = np.float(
-        metadata['lat'].loc[int(stn_mac)].replace(',', '.'))
+    hf.root.coord.lon[i_idx] = metadata['lon'].loc[int(stn_mac)]
+    hf.root.coord.lat[i_idx] = metadata['lat'].loc[int(stn_mac)]
     #hf.root.coord.z[i_idx] = metadata['elev'].loc[stn_mac]
 
     etrs89 = convert_coords_fr_wgs84_to_utm32_(
-        '+init=epsg:4326', '+init=epsg:25832', np.float(
-            metadata['lon'].loc[int(stn_mac)].replace(',', '.')),
-        np.float(metadata['lat'].loc[int(stn_mac)].replace(',', '.')))
+        '+init=epsg:4326', '+init=epsg:25832',
+        metadata['lon'].loc[int(stn_mac)],
+        metadata['lat'].loc[int(stn_mac)])
 
     hf.root.coord.northing[i_idx] = etrs89[1]  # metadata['northing'].values
     hf.root.coord.easting[i_idx] = etrs89[0]  # metadata['easting'].values
@@ -287,10 +286,12 @@ for i_idx, stn_name in enumerate(df_ppt.columns):
 
     # hf.root.name[i_idx] = np.string_(stationname)
     i_station += 1
-    
+
     plt.ioff()
     plt.figure(figsize=(12, 8))
     plt.plot(temp_station.index, temp_station.values)
     plt.savefig(r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan\dataframe_as_HDF5_Reutlingen_Stations\%s.png'
                 % stationname)
     plt.close()
+
+hf.close()

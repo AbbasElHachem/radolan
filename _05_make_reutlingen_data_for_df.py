@@ -23,7 +23,7 @@ df_exsisting = pd.read_csv(
 
 
 start_time_ix = df_exsisting.index[0]
-end_time_ix = '2020-09-18 00:00:00'
+end_time_ix = '2021-07-26 00:00:00'
 
 date_range = pd.date_range(start=start_time_ix, end=end_time_ix, freq='Min')
 
@@ -48,7 +48,7 @@ final_df_combined.loc[df_exsisting.index, :] = df_exsisting.values
 # get all new data from directory
 all_files = glob.glob(
     r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan'
-    r'\RT_Pluviodaten\g_until_180920_Copy\*')
+    r'\RT_Pluviodaten\h_until_270721\*')
 assert len(all_files) > 0, 'directory seems empty'
 # all_files[0]
 
@@ -118,5 +118,5 @@ for i, df_file in enumerate(all_files):
 final_df_combined.to_csv(
     r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan"
     r"\dataframe_as_HDF5_Reutlingen_Stations"
-    r"\data_df_18092020.csv",
+    r"\data_df_26072021.csv",
     sep=';', float_format='%0.2f')
