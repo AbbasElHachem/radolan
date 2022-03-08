@@ -40,7 +40,7 @@ main_dir = Path(r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan'
 os.chdir(main_dir)
 
 # path for rainfall df, all stations
-df_rainfall_file = main_dir / 'data_df_26072021.csv'
+df_rainfall_file = main_dir / 'data_df_26072021_filled_missing_dates.csv'
 
 temp_res = '1Min'
 #==============================================================================
@@ -124,7 +124,7 @@ print('Savving new DF')
 # plt.show()
 
 # save df
-df_ppt_new.to_csv((main_dir / 'data_df_with_zero_and_nan_values_26072021.csv'),
+df_ppt_new.to_csv((main_dir / 'data_df_with_zero_and_nan_values_26072021_no_missing_vals.csv'),
                   sep=';', float_format='%0.2f')
 
 print('Done with Everything')

@@ -15,8 +15,9 @@ import matplotlib.pyplot as plt
 
 df_exsisting = pd.read_csv(
     r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan"
-    r"\dataframe_as_HDF5_Reutlingen_Stations\data_df_23062020.csv",
-    sep=';', index_col=0, engine='c', infer_datetime_format=True, parse_dates=True)
+    r"\dataframe_as_HDF5_Reutlingen_Stations\data_df_26072021.csv",
+    sep=';', index_col=0, engine='c',
+    infer_datetime_format=True, parse_dates=True)
 
 
 # In[18]:
@@ -48,7 +49,7 @@ final_df_combined.loc[df_exsisting.index, :] = df_exsisting.values
 # get all new data from directory
 all_files = glob.glob(
     r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan'
-    r'\RT_Pluviodaten\h_until_270721\*')
+    r'\RT_Pluviodaten\j_comb_data_i_h_until_270721\*')
 assert len(all_files) > 0, 'directory seems empty'
 # all_files[0]
 
@@ -71,7 +72,7 @@ for i, df_file in enumerate(all_files):
         time_ix_range = pd.DatetimeIndex(
             time_ix_time_obj.strftime(date_format='%d-%m-%Y %H:%M:%S'))
         # get ppt data
-        ppt_data_arr = [np.float(ppt.replace(',', '.')) if (
+        ppt_data_arr = [float(ppt.replace(',', '.')) if (
             type(ppt) == str and str(ppt) != '---') else np.nan
             for ppt in df[2]]
 
@@ -118,5 +119,5 @@ for i, df_file in enumerate(all_files):
 final_df_combined.to_csv(
     r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan"
     r"\dataframe_as_HDF5_Reutlingen_Stations"
-    r"\data_df_26072021.csv",
+    r"\data_df_26072021_filled_missing_dates.csv",
     sep=';', float_format='%0.2f')

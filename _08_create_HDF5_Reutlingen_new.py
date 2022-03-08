@@ -37,7 +37,7 @@ os.chdir(main_dir)
 # path for rainfall df, all stations
 df_rainfall_file = (r'X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan'
                     r'\dataframe_as_HDF5_Reutlingen_Stations'
-                    r'\data_df_with_zero_and_nan_values_26072021.csv')
+                    r'\data_df_26072021_filled_missing_dates.csv')
 # path to coordinates df
 ppt_coords = (r"X:\hiwi\ElHachem\Jochen\Reutlingen_Radolan\RT_Pluviodaten"
               r"\tobi_metadata_ser.csv")
@@ -103,7 +103,7 @@ dates = pd.date_range(start_dt, end_dt, freq=freq)
 blank_df = pd.DataFrame(index=dates)  # , data=np.zeros(dates.shape))
 
 
-hdf5_path = os.path.join('Reutlingen_pluvios_new.h5')
+hdf5_path = os.path.join('Reutlingen_pluvios_filled_missing_dates.h5')
 
 if not os.path.isfile(hdf5_path):
     # number of maximum timesteps
